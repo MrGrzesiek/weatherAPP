@@ -1,0 +1,141 @@
+<!-- res/layout/fragment1_layout.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="top|start"
+    android:padding="16dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Lista miast -->
+        <Spinner
+            android:id="@+id/citySpinner"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Przycisk do pokazywania pól -->
+        <Button
+            android:id="@+id/showFieldsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dodaj miasto" />
+    </LinearLayout>
+
+    <!-- Pola dla wprowadzania danych (domyślnie ukryte) -->
+    <LinearLayout
+        android:id="@+id/inputFieldsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/editCityName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nazwa miejscowości"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/editPostalCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Kod pocztowy"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/editCountry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Kraj"
+            android:inputType="text" />
+        <Button
+            android:id="@+id/addButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dodaj" />
+
+    </LinearLayout>
+    <TextView
+        android:id="@+id/internetstatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="24sp" />
+
+    <!-- Nagłówek -->
+    <TextView
+        android:id="@+id/header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Podstawowe informacje"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:textSize="30sp"
+        android:textStyle="bold"/>
+
+    <!-- Dodaj pola dla informacji pogodowych -->
+    <TextView
+        android:id="@+id/cityName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Miejscowość: "
+        android:textSize="24sp"/>
+
+    <TextView
+        android:id="@+id/coordinates"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Współrzędne: "
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Czas: "
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/temperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Temperatura: "
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/pressure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ciśnienie: "
+        android:textSize="24sp"/>
+
+    <TextView
+        android:id="@+id/header2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Stan pogody"
+        android:textSize="30sp"
+        android:layout_marginTop="10dp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Opis: "
+        android:textSize="24sp" />
+
+    <ImageView
+        android:id="@+id/weatherIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_launcher_foreground" /> <!-- Tutaj ustaw ikonę warunków pogodowych -->
+
+</LinearLayout>
+

@@ -1,0 +1,50 @@
+<!-- res/layout/fragment2_layout.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="top|start"
+    android:padding="16dp">
+
+    <!-- Nagłówek -->
+    <TextView
+        android:id="@+id/header_fragment2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Informacje o pogodzie"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center_vertical" />
+
+    <!-- Dodaj pola dla informacji o pogodzie -->
+    <TextView
+        android:id="@+id/windStrength"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Siła wiatru: "
+        android:textSize="24sp"/>
+
+    <TextView
+        android:id="@+id/windDirection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kierunek wiatru: "
+        android:textSize="24sp"/>
+
+    <TextView
+        android:id="@+id/humidity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wilgotność: "
+        android:textSize="24sp"/>
+
+    <TextView
+        android:id="@+id/visibility"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Widoczność: "
+        android:textSize="24sp"/>
+
+</LinearLayout>
