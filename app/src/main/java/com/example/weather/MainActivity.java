@@ -9,7 +9,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SimpleDataFragment.SendMessage{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,5 +60,11 @@ public class MainActivity extends AppCompatActivity {
         public int getCount() {
             return 3;
         }
+    }
+    @Override
+    public void sendData(double windSpeed, double windDeg, int visibility, int humidity) {
+        String tag = "android:switcher:" + R.id.viewPager + ":" + 1;
+        MoreDataFragment f = (MoreDataFragment) getSupportFragmentManager().findFragmentByTag(tag);
+        f.displayReceivedData(windSpeed, windDeg, visibility, humidity);
     }
 }

@@ -58,7 +58,7 @@ public class SimpleDataFragment extends Fragment {
             }
         }
     }
-
+    SendMessage SM;
     private LinearLayout inputFieldsLayout;
     private Spinner citySpinner;
     private Button addButton;
@@ -72,6 +72,7 @@ public class SimpleDataFragment extends Fragment {
     static int visibilityto2,humidityto2;
     boolean isNetworkAvailable=true;
     static boolean refreshFlag = false;
+
 
 
     public SimpleDataFragment() {
@@ -296,14 +297,7 @@ public class SimpleDataFragment extends Fragment {
                 pressureTextView.setText("Ciśnienie: " + pressure+" hPa");
                 descriptionTextView.setText("Opis: " + weatherDesc);
                 setWeatherIcon(iconCode);
-                humidityto2=humidity;
-                windSpeedto2=windSpeed;
-                windDegto2=windDeg;
-                visibilityto2=visibility;
-                Log.d("WeatherApiTask", "humidityto2 " + humidityto2);
-                Log.d("WeatherApiTask", "windSpeedto2 " + windSpeedto2);
-                Log.d("WeatherApiTask", "windDegto2 " + windDegto2);
-                Log.d("WeatherApiTask", "visibilityto2 " + visibilityto2);
+                SM.sendData(windSpeed, windDeg, visibility, humidity);
             }
         }, "metric").execute(cityName);
         isNetworkAvailable = WeatherApiTask.isNetworkAvailable;
@@ -323,14 +317,12 @@ public class SimpleDataFragment extends Fragment {
         for (String city : formDataList) {
             JSONObject cityObject = new JSONObject();
             try {
-                cityObject.put("cityName", city);
-                // Dodaj inne dane miasta, jeśli są dostępne
-                // cityObject.put("temperature", temperature);
-                // cityObject.put("pressure", pressure);
-                // cityObject.put("coordinates", coordinates);
-                // ...
+                // Sprawdź, czy miasto już istnieje na liście
+                if (!isCityAlreadyAdded(cityArray, city)) {
+                    cityObject.put("cityName", city);
 
-                cityArray.put(cityObject);
+                    cityArray.put(cityObject);
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -387,10 +379,39 @@ public class SimpleDataFragment extends Fragment {
             new WeatherApiTask(getContext(), new WeatherApiTask.WeatherListener() {
                 @Override
                 public void onWeatherUpdate(double temperature, double pressure, int humidity, String iconCode, double windSpeed, double windDeg, int visibility, String formattedDate, String formattedCoords, String weatherDesc) {
-                    // Aktualizuj dane pogodowe (możesz zaimplementować to według potrzeb)
+                    String selectedCity = citySpinner.getSelectedItem().toString();
+                    loadWeatherDataForCity(selectedCity);
                 }
             }, "metric").execute(city);
         }
     }
+    interface SendMessage {
+        void sendData(double windSpeed, double windDeg, int visibility, int humidity);
+    }
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        try {
+            SM = (SendMessage) getActivity();
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Error in retrieving data. Please try again");
+        }
+    }
+    private boolean isCityAlreadyAdded(JSONArray cityArray, String cityName) {
+        for (int i = 0; i < cityArray.length(); i++) {
+            try {
+                JSONObject cityObject = cityArray.getJSONObject(i);
+                String existingCityName = cityObject.getString("cityName");
+                if (existingCityName.equals(cityName)) {
+                    return true; // Miasto już istnieje na liście
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return false; // Miasto nie istnieje na liście
+    }
 }
+
 

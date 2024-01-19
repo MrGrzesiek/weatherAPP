@@ -54,7 +54,7 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
         if (isNetworkAvailable) {
             String jsonFromFile = loadJsonFromFile(city);
             Log.d("WeatherApiTask", "File age: "+isFileOlderThanOneHour(jsonFromFile));
-            Log.d("WeatherApiTask", "File content: " + jsonFromFile);
+            Log.d("WeatherApiTask", "REFRESH " + refreshFlag);
             // Sprawdź, czy plik jest starszy niż 1 godzina
             if (isFileOlderThanOneHour(jsonFromFile)||refreshFlag) {
                 Log.d("WeatherApiTask", "Fetching data from server...");
