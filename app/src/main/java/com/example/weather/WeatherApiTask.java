@@ -2,6 +2,10 @@ package com.example.weather;
 
 import android.content.Context;
 import android.icu.text.SimpleDateFormat;
+import android.icu.util.Calendar;
+import android.icu.util.TimeZone;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
@@ -12,12 +16,14 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class WeatherApiTask extends AsyncTask<String, Void, String> {
 
@@ -27,6 +33,11 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
     private WeatherListener weatherListener;
     private String units;  // Dodaj zmienną globalną dla jednostek
     private Context context;  // Dodaj kontekst aplikacji
+
+    static boolean isNetworkAvailable = true;
+    static boolean isUsingFileData = false;
+
+    boolean refreshFlag = SimpleDataFragment.refreshFlag;
 
     public WeatherApiTask(Context context, WeatherListener weatherListener, String units) {
         this.context = context;
@@ -38,30 +49,53 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
     protected String doInBackground(String... params) {
         String city = params[0];
         Log.d("WeatherApiTask", "City Name: " + city);
+        isNetworkAvailable = isNetworkAvailable();
+        // Sprawdź dostępność internetu przed pobraniem danych
+        if (isNetworkAvailable) {
+            String jsonFromFile = loadJsonFromFile(city);
+            Log.d("WeatherApiTask", "File age: "+isFileOlderThanOneHour(jsonFromFile));
+            Log.d("WeatherApiTask", "File content: " + jsonFromFile);
+            // Sprawdź, czy plik jest starszy niż 1 godzina
+            if (isFileOlderThanOneHour(jsonFromFile)||refreshFlag) {
+                Log.d("WeatherApiTask", "Fetching data from server...");
+                try {
+                    URL url = new URL(API_URL + "?q=" + city + "&appid=" + API_KEY + "&units=" + units + "&lang=pl");
+                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
 
-        try {
-            URL url = new URL(API_URL + "?q=" + city + "&appid=" + API_KEY + "&units=" + units + "&lang=pl");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder response = new StringBuilder();
-            String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
 
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
+                    reader.close();
+
+                    // Zapisz JSON do pliku
+                    saveJsonToFile(response.toString(), city);
+                    Log.d("WeatherApiTask", "Data fetched from server.");
+                    isUsingFileData = false;
+
+                    return response.toString();
+
+                } catch (Exception e) {
+                    Log.e("WeatherApiTask", "Error while fetching weather data", e);
+                    Log.d("WeatherApiTask", "Using data from file...");
+                    isUsingFileData = true;
+                    return jsonFromFile;  // Jeśli wystąpił błąd, zwróć wczytane dane z pliku
+                }
+            } else {
+                Log.d("WeatherApiTask", "Using data from file...");
+                isUsingFileData = true;
+                return jsonFromFile;  // Jeśli plik jest wystarczająco świeży, zwróć wczytane dane z pliku
             }
-
-            reader.close();
-
-            // Zapisz JSON do pliku
-            saveJsonToFile(response.toString(), city);
-
-            return response.toString();
-
-        } catch (Exception e) {
-            Log.e("WeatherApiTask", "Error while fetching weather data", e);
-            return null;
+        } else {
+            Log.e("WeatherApiTask", "No internet connection");
+            Log.d("WeatherApiTask", "Using data from file...");
+            isUsingFileData = true;
+            return loadJsonFromFile(city);  // Brak dostępu do internetu, wczytaj dane z pliku
         }
     }
 
@@ -76,7 +110,6 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
 
                 // Wyciągnij dane z podklucza "dt"
                 long dt = jsonObject.getLong("dt");
-
                 // Wyciągnij dane z podklucza "coord"
                 JSONObject coordObject = jsonObject.getJSONObject("coord");
                 double latitude = coordObject.getDouble("lat");
@@ -145,7 +178,7 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
     // Konwersja timestamp na format daty i czasu
     private String convertTimestampToDate(long timestamp) {
         try {
-            Date date = new Date(timestamp * 1000L);
+            Date date = new Date((timestamp) * 1000L);
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
             return sdf.format(date);
         } catch (Exception e) {
@@ -158,5 +191,60 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
         String lonDirection = (longitude >= 0) ? "E" : "W";
 
         return String.format(Locale.getDefault(), "%.2f°%s, %.2f°%s", Math.abs(latitude), latDirection, Math.abs(longitude), lonDirection);
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+        return false;
+    }
+
+    // Dodaj nową metodę do wczytywania danych z pliku
+    private String loadJsonFromFile(String fileName) {
+        try {
+            File directory = new File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "WeatherData");
+            File file = new File(directory, fileName + ".json");
+
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
+            StringBuilder stringBuilder = new StringBuilder();
+            String line;
+
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+
+            bufferedReader.close();
+            return stringBuilder.toString();
+        } catch (IOException e) {
+            Log.e("WeatherApiTask", "Error loading JSON from file", e);
+            return null;
+        }
+    }
+    private boolean isFileOlderThanOneHour(String json) {
+        if (json != null) {
+            try {
+                JSONObject jsonObject = new JSONObject(json);
+
+                // Odczytaj timestamp z klucza "dt"
+                long dtTimestamp = jsonObject.optLong("dt", 0);
+
+                // Pobierz aktualny czas w sekundach
+                long currentTimeSeconds = System.currentTimeMillis() / 1000;
+
+                // Oblicz różnicę czasów w sekundach
+                long ageInSeconds = currentTimeSeconds - dtTimestamp;
+
+                long oneHourInSeconds = TimeUnit.HOURS.toSeconds(1);
+                Log.d("WeatherApiTask", "ageInSeconds: " + ageInSeconds + " oneHourInSeconds: " + oneHourInSeconds);
+
+                return ageInSeconds > oneHourInSeconds;
+            } catch (JSONException e) {
+                Log.e("WeatherApiTask", "Error parsing JSON for timestamp or timezone", e);
+                return true; // Jeśli wystąpił błąd podczas parsowania, uznać plik za stary
+            }
+        }
+        return true; // Jeśli nie ma danych JSON, uznać plik za stary
     }
 }

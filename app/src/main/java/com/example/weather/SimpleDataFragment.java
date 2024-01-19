@@ -16,6 +16,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import org.json.JSONArray;
@@ -23,14 +24,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +39,6 @@ public class SimpleDataFragment extends Fragment {
         // Zapisz dane, które chcesz zachować podczas obracania ekranu
         outState.putBoolean("fieldsVisible", fieldsVisible);
         outState.putStringArrayList("formDataList", new ArrayList<>(formDataList));
-        saveCityListToJson();
     }
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -66,11 +62,17 @@ public class SimpleDataFragment extends Fragment {
     private LinearLayout inputFieldsLayout;
     private Spinner citySpinner;
     private Button addButton;
-    private ImageView showFieldsButton, removeCityButton;
+    private ImageView showFieldsButton, removeCityButton,fetchDataButton;
     private EditText editCityName;
-    private TextView cityNameTextView,coordinatesTextView, timeTextView, temperatureTextView, pressureTextView, descriptionTextView;
+    private TextView cityNameTextView,coordinatesTextView, timeTextView, temperatureTextView, pressureTextView, descriptionTextView,header4TextView;
     private boolean fieldsVisible = false;
     private List<String> formDataList = new ArrayList<>();
+
+    static double windSpeedto2,windDegto2;
+    static int visibilityto2,humidityto2;
+    boolean isNetworkAvailable=true;
+    static boolean refreshFlag = false;
+
 
     public SimpleDataFragment() {
     }
@@ -92,6 +94,8 @@ public class SimpleDataFragment extends Fragment {
         temperatureTextView = rootView.findViewById(R.id.temperature);
         pressureTextView = rootView.findViewById(R.id.pressure);
         descriptionTextView = rootView.findViewById(R.id.description);
+        header4TextView = rootView.findViewById(R.id.header4);
+        fetchDataButton = rootView.findViewById(R.id.fetchDataButton);
 
         List<String> savedCityList = readCityListFromJson();
         formDataList.addAll(savedCityList);
@@ -140,6 +144,7 @@ public class SimpleDataFragment extends Fragment {
                         }
                     }
                     loadWeatherDataForCity(cityName);
+                    saveCityListToJson();
                 }
                 fieldsVisible = false;
                 updateInputFieldsVisibility();
@@ -149,6 +154,15 @@ public class SimpleDataFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 removeSelectedCity();
+            }
+        });
+        fetchDataButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Wymuś pobranie danych z serwera dla wszystkich miast
+                refreshFlag = true;
+                fetchWeatherDataForAllCities();
+                refreshFlag = false;
             }
         });
 
@@ -282,8 +296,25 @@ public class SimpleDataFragment extends Fragment {
                 pressureTextView.setText("Ciśnienie: " + pressure+" hPa");
                 descriptionTextView.setText("Opis: " + weatherDesc);
                 setWeatherIcon(iconCode);
+                humidityto2=humidity;
+                windSpeedto2=windSpeed;
+                windDegto2=windDeg;
+                visibilityto2=visibility;
+                Log.d("WeatherApiTask", "humidityto2 " + humidityto2);
+                Log.d("WeatherApiTask", "windSpeedto2 " + windSpeedto2);
+                Log.d("WeatherApiTask", "windDegto2 " + windDegto2);
+                Log.d("WeatherApiTask", "visibilityto2 " + visibilityto2);
             }
         }, "metric").execute(cityName);
+        isNetworkAvailable = WeatherApiTask.isNetworkAvailable;
+        boolean isUsingFileData = WeatherApiTask.isUsingFileData;
+        Log.d("WeatherApiTask", "NETWORKSTATE: " + isNetworkAvailable);
+        if (isNetworkAvailable) {
+            header4TextView.setVisibility(View.GONE);
+        } else {
+            header4TextView.setText("Brak dostępu do internetu dane są czytane z pliku");
+            header4TextView.setVisibility(View.VISIBLE);
+        }
     }
     // Metoda do zapisywania listy miast do pliku JSON
     private void saveCityListToJson() {
@@ -350,5 +381,16 @@ public class SimpleDataFragment extends Fragment {
 
         return cityList;
     }
-
+    private void fetchWeatherDataForAllCities() {
+        // Iteruj przez listę miast i wywołaj pobieranie danych dla każdego z nich
+        for (String city : extractCityNames(formDataList)) {
+            new WeatherApiTask(getContext(), new WeatherApiTask.WeatherListener() {
+                @Override
+                public void onWeatherUpdate(double temperature, double pressure, int humidity, String iconCode, double windSpeed, double windDeg, int visibility, String formattedDate, String formattedCoords, String weatherDesc) {
+                    // Aktualizuj dane pogodowe (możesz zaimplementować to według potrzeb)
+                }
+            }, "metric").execute(city);
+        }
+    }
 }
+
