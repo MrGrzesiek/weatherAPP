@@ -14,9 +14,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import org.json.JSONArray;
@@ -101,6 +101,7 @@ public class SimpleDataFragment extends Fragment {
         List<String> savedCityList = readCityListFromJson();
         formDataList.addAll(savedCityList);
         setupCitySpinner(extractCityNames(formDataList));
+        isNetworkAvailable=NetworkUtils.isNetworkAvailable(getContext());
 
 
         showFieldsButton.setOnClickListener(new View.OnClickListener() {
@@ -158,12 +159,18 @@ public class SimpleDataFragment extends Fragment {
             }
         });
         fetchDataButton.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                // Wymuś pobranie danych z serwera dla wszystkich miast
-                refreshFlag = true;
-                fetchWeatherDataForAllCities();
-                refreshFlag = false;
+                if(NetworkUtils.isNetworkAvailable(getContext())){
+                    // Wymuś pobranie danych z serwera dla wszystkich miast
+                    refreshFlag = true;
+                    fetchWeatherDataForAllCities();
+                    refreshFlag = false;
+                }
+                else {
+                    Toast.makeText(getContext(), "Brak dostępu do internetu. Dane są czytane z pliku.", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

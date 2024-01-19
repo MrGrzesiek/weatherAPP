@@ -49,7 +49,8 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
     protected String doInBackground(String... params) {
         String city = params[0];
         Log.d("WeatherApiTask", "City Name: " + city);
-        isNetworkAvailable = isNetworkAvailable();
+        //isNetworkAvailable = isNetworkAvailable();
+        isNetworkAvailable = NetworkUtils.isNetworkAvailable(context);
         // Sprawdź dostępność internetu przed pobraniem danych
         if (isNetworkAvailable) {
             String jsonFromFile = loadJsonFromFile(city);
@@ -110,6 +111,8 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
 
                 // Wyciągnij dane z podklucza "dt"
                 long dt = jsonObject.getLong("dt");
+                // Wyciągnij dane z podklucza "timezone"
+                long timezone = jsonObject.getLong("timezone");
                 // Wyciągnij dane z podklucza "coord"
                 JSONObject coordObject = jsonObject.getJSONObject("coord");
                 double latitude = coordObject.getDouble("lat");
@@ -134,7 +137,7 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
                 int visibility = jsonObject.getInt("visibility");
 
                 // Konwertuj dt na format daty i czasu
-                String formattedDate = convertTimestampToDate(dt);
+                String formattedDate = convertTimestampToDate(dt,timezone);
 
                 // Konwertuj szerokość i długość geograficzną na string z kierunkami
                 String formattedCoords = formatCoordinates(latitude, longitude);
@@ -149,6 +152,7 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
             }
         } else {
             Log.e("WeatherApiTask", "Empty or null response");
+            weatherListener.onWeatherUpdate(0, 0, 0, "0", 0,0, 0, "brak", "brak","brak");
         }
     }
 
@@ -176,10 +180,14 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
     }
 
     // Konwersja timestamp na format daty i czasu
-    private String convertTimestampToDate(long timestamp) {
+    private String convertTimestampToDate(long timestamp, long timezone) {
         try {
-            Date date = new Date((timestamp) * 1000L);
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            TimeZone defaultTimeZone = TimeZone.getDefault();
+            int rawOffsetMillis = defaultTimeZone.getRawOffset();
+            int rawOffsetSeconds = rawOffsetMillis / 1000;
+
+            Date date = new Date(((timestamp+timezone)-rawOffsetSeconds) * 1000L);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             return sdf.format(date);
         } catch (Exception e) {
             Log.e("WeatherApiTask", "Error converting timestamp to date", e);
@@ -192,7 +200,7 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
 
         return String.format(Locale.getDefault(), "%.2f°%s, %.2f°%s", Math.abs(latitude), latDirection, Math.abs(longitude), lonDirection);
     }
-    private boolean isNetworkAvailable() {
+    public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
@@ -229,12 +237,15 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
 
                 // Odczytaj timestamp z klucza "dt"
                 long dtTimestamp = jsonObject.optLong("dt", 0);
-
+                // Odczytaj timestamp z klucza "timeZone"
+                long timeZone = jsonObject.optLong("timezone", 0);
+                //Oblicz czas ze strefa czasowa
+                long realtime = dtTimestamp + timeZone;
                 // Pobierz aktualny czas w sekundach
                 long currentTimeSeconds = System.currentTimeMillis() / 1000;
 
                 // Oblicz różnicę czasów w sekundach
-                long ageInSeconds = currentTimeSeconds - dtTimestamp;
+                long ageInSeconds = (currentTimeSeconds+timeZone) - realtime;
 
                 long oneHourInSeconds = TimeUnit.HOURS.toSeconds(1);
                 Log.d("WeatherApiTask", "ageInSeconds: " + ageInSeconds + " oneHourInSeconds: " + oneHourInSeconds);
