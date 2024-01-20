@@ -38,15 +38,13 @@ public class SimpleDataFragment extends Fragment {
         super.onSaveInstanceState(outState);
         // Zapisz dane, które chcesz zachować podczas obracania ekranu
         outState.putBoolean("fieldsVisible", fieldsVisible);
-        outState.putStringArrayList("formDataList", new ArrayList<>(formDataList));
     }
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // Przywróć zapisane dane po obróceniu ekranu
         if (savedInstanceState != null) {
             fieldsVisible = savedInstanceState.getBoolean("fieldsVisible", false);
-            formDataList = savedInstanceState.getStringArrayList("formDataList");
-
+            formDataList = readCityListFromJson();
             // Aktualizuj UI w zależności od przywróconych danych
             updateInputFieldsVisibility();
             setupCitySpinner(extractCityNames(formDataList));
@@ -68,9 +66,6 @@ public class SimpleDataFragment extends Fragment {
     private boolean fieldsVisible = false;
     private List<String> formDataList = new ArrayList<>();
 
-    static double windSpeedto2,windDegto2;
-    static int visibilityto2,humidityto2;
-    boolean isNetworkAvailable=true;
     static boolean refreshFlag = false;
 
 
@@ -101,7 +96,7 @@ public class SimpleDataFragment extends Fragment {
         List<String> savedCityList = readCityListFromJson();
         formDataList.addAll(savedCityList);
         setupCitySpinner(extractCityNames(formDataList));
-        isNetworkAvailable=NetworkUtils.isNetworkAvailable(getContext());
+        changeNetworkHeader(WeatherApiTask.isNetworkAvailable);
 
 
         showFieldsButton.setOnClickListener(new View.OnClickListener() {
@@ -156,7 +151,9 @@ public class SimpleDataFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 removeSelectedCity();
+                saveCityListToJson();
             }
+
         });
         fetchDataButton.setOnClickListener(new View.OnClickListener() {
 
@@ -296,8 +293,8 @@ public class SimpleDataFragment extends Fragment {
         // Wywołaj pobieranie danych o pogodzie dla wybranego miasta
         new WeatherApiTask(getContext(), new WeatherApiTask.WeatherListener() {
             @Override
-            public void onWeatherUpdate(double temperature, double pressure, int humidity, String iconCode, double windSpeed, double windDeg, int visibility, String formattedDate, String formattedCoords, String weatherDesc) {
-                updateCityNameTextView(cityName);
+            public void onWeatherUpdate(String city,double temperature, double pressure, int humidity, String iconCode, double windSpeed, double windDeg, int visibility, String formattedDate, String formattedCoords, String weatherDesc) {
+                cityNameTextView.setText("Miejscowość: " + city);
                 coordinatesTextView.setText("Współrzędne: " + formattedCoords);
                 timeTextView.setText("Czas: " + formattedDate);
                 temperatureTextView.setText("Temperatura: " + temperature +" \u2103"); //\u2109
@@ -307,9 +304,9 @@ public class SimpleDataFragment extends Fragment {
                 SM.sendData(windSpeed, windDeg, visibility, humidity);
             }
         }, "metric").execute(cityName);
-        isNetworkAvailable = WeatherApiTask.isNetworkAvailable;
-        boolean isUsingFileData = WeatherApiTask.isUsingFileData;
-        Log.d("WeatherApiTask", "NETWORKSTATE: " + isNetworkAvailable);
+        changeNetworkHeader(WeatherApiTask.isNetworkAvailable);
+    }
+    private void changeNetworkHeader(boolean isNetworkAvailable) {
         if (isNetworkAvailable) {
             header4TextView.setVisibility(View.GONE);
         } else {
@@ -365,11 +362,6 @@ public class SimpleDataFragment extends Fragment {
             for (int i = 0; i < cityArray.length(); i++) {
                 JSONObject cityObject = cityArray.getJSONObject(i);
                 String cityName = cityObject.getString("cityName");
-                // Odczytaj inne dane miasta, jeśli są dostępne
-                // double temperature = cityObject.getDouble("temperature");
-                // double pressure = cityObject.getDouble("pressure");
-                // String coordinates = cityObject.getString("coordinates");
-                // ...
 
                 cityList.add(cityName);
             }
@@ -385,7 +377,7 @@ public class SimpleDataFragment extends Fragment {
         for (String city : extractCityNames(formDataList)) {
             new WeatherApiTask(getContext(), new WeatherApiTask.WeatherListener() {
                 @Override
-                public void onWeatherUpdate(double temperature, double pressure, int humidity, String iconCode, double windSpeed, double windDeg, int visibility, String formattedDate, String formattedCoords, String weatherDesc) {
+                public void onWeatherUpdate(String city,double temperature, double pressure, int humidity, String iconCode, double windSpeed, double windDeg, int visibility, String formattedDate, String formattedCoords, String weatherDesc) {
                     String selectedCity = citySpinner.getSelectedItem().toString();
                     loadWeatherDataForCity(selectedCity);
                 }

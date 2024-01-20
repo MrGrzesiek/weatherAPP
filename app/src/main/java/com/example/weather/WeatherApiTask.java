@@ -109,6 +109,7 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
             try {
                 JSONObject jsonObject = new JSONObject(result);
 
+                String city = jsonObject.getString("name");
                 // Wyciągnij dane z podklucza "dt"
                 long dt = jsonObject.getLong("dt");
                 // Wyciągnij dane z podklucza "timezone"
@@ -145,20 +146,20 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
                 String weatherDesc = weatherObject.getString("description");
 
                 // Przekazanie danych do słuchacza
-                weatherListener.onWeatherUpdate(temperature, pressure, humidity, iconCode, windSpeed,windDeg, visibility, formattedDate, formattedCoords,weatherDesc);
+                weatherListener.onWeatherUpdate(city,temperature, pressure, humidity, iconCode, windSpeed,windDeg, visibility, formattedDate, formattedCoords,weatherDesc);
 
             } catch (JSONException e) {
                 Log.e("WeatherApiTask", "Error parsing JSON response", e);
             }
         } else {
             Log.e("WeatherApiTask", "Empty or null response");
-            weatherListener.onWeatherUpdate(0, 0, 0, "0", 0,0, 0, "brak", "brak","brak");
+            weatherListener.onWeatherUpdate("brak",0, 0, 0, "0", 0,0, 0, "brak", "brak","brak");
         }
     }
 
     // Interfejs do przekazywania danych o pogodzie do klasy wywołującej
     public interface WeatherListener {
-        void onWeatherUpdate(double temperature, double pressure, int humidity, String iconCode, double windSpeed,double windDeg, int visibility, String formattedDate, String formattedCoords,String weatherDesc);
+        void onWeatherUpdate(String city, double temperature, double pressure, int humidity, String iconCode, double windSpeed,double windDeg, int visibility, String formattedDate, String formattedCoords,String weatherDesc);
 
     }
 
@@ -199,14 +200,6 @@ public class WeatherApiTask extends AsyncTask<String, Void, String> {
         String lonDirection = (longitude >= 0) ? "E" : "W";
 
         return String.format(Locale.getDefault(), "%.2f°%s, %.2f°%s", Math.abs(latitude), latDirection, Math.abs(longitude), lonDirection);
-    }
-    public boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager != null) {
-            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-        }
-        return false;
     }
 
     // Dodaj nową metodę do wczytywania danych z pliku

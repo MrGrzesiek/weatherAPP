@@ -1,40 +1,48 @@
 <!-- res/layout/fragment1_layout.xml -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:textColor="@color/white">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:gravity="top|start"
-        android:padding="16dp">
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:textColor="@color/white">
+
         <TextView
             android:id="@+id/header4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:text="Lista miast"
+            android:textColor="#FF0000"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_gravity="center"
-            android:visibility="gone"
-            android:textColor="#FF0000"/>
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/header3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Lista miast"
+            android:layout_gravity="center"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
+            android:text="Lista miast"
             android:textSize="30sp"
             android:textStyle="bold"
-            android:layout_gravity="center"/>
+            android:textColor="@color/white"
+            />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-        <!-- Lista miast -->
+            <!-- Lista miast -->
             <ImageView
                 android:id="@+id/removeCityButton"
                 android:layout_width="40sp"
@@ -46,9 +54,10 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:textSize="30sp"/>
+                android:textSize="30sp"
+                android:textColor="@color/white"/>
 
-        <!-- Przycisk do pokazywania pól -->
+            <!-- Przycisk do pokazywania pól -->
             <ImageView
                 android:id="@+id/showFieldsButton"
                 android:layout_width="40sp"
@@ -56,7 +65,7 @@
                 android:src="@drawable/add" />
         </LinearLayout>
 
-    <!-- Pola dla wprowadzania danych (domyślnie ukryte) -->
+        <!-- Pola dla wprowadzania danych (domyślnie ukryte) -->
         <LinearLayout
             android:id="@+id/inputFieldsLayout"
             android:layout_width="match_parent"
@@ -69,98 +78,111 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Nazwa miejscowości"
-                android:inputType="text" />
+                android:inputType="text"
+                android:textColor="@color/white"/>
 
             <Button
                 android:id="@+id/addButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Dodaj" />
+                android:text="Dodaj"
+                android:textColor="@color/black"/>
 
         </LinearLayout>
+
         <TextView
             android:id="@+id/internetstatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textSize="24sp" />
+            android:textSize="24sp"
+            android:textColor="@color/white"/>
 
-    <!-- Nagłówek -->
+        <!-- Nagłówek -->
         <TextView
             android:id="@+id/header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Podstawowe informacje"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
+            android:text="Podstawowe informacje"
             android:textSize="30sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/white"/>
 
-    <!-- Dodaj pola dla informacji pogodowych -->
+        <!-- Dodaj pola dla informacji pogodowych -->
         <TextView
             android:id="@+id/cityName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Miejscowość: "
-            android:textSize="24sp"/>
+            android:textSize="24sp"
+            android:textColor="@color/white"/>
 
         <TextView
             android:id="@+id/coordinates"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Współrzędne: "
-            android:textSize="24sp" />
+            android:textSize="24sp"
+            android:textColor="@color/white"/>
 
         <TextView
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Czas: "
-            android:textSize="24sp" />
+            android:textSize="24sp"
+            android:textColor="@color/white"/>
 
         <TextView
             android:id="@+id/temperature"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Temperatura: "
-            android:textSize="24sp" />
+            android:textSize="24sp"
+            android:textColor="@color/white"/>
 
         <TextView
             android:id="@+id/pressure"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Ciśnienie: "
-            android:textSize="24sp"/>
+            android:textSize="24sp"
+            android:textColor="@color/white"/>
 
         <TextView
             android:id="@+id/header2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:text="Stan pogody"
             android:textSize="30sp"
-            android:layout_marginTop="10dp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="@color/white"/>
 
         <TextView
             android:id="@+id/description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Opis: "
-            android:textSize="24sp" />
+            android:textSize="24sp"
+            android:textColor="@color/white"/>
 
         <ImageView
             android:id="@+id/weatherIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/question"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:src="@drawable/question" />
+
         <ImageView
             android:id="@+id/fetchDataButton"
             android:layout_width="64sp"
             android:layout_height="64sp"
-            android:src="@drawable/refresh"
+            android:layout_gravity="bottom|end"
             android:layout_marginTop="20dp"
-            android:layout_gravity="bottom|end" /><!-- Tutaj ustaw ikonę warunków pogodowych -->
+            android:src="@drawable/refresh" /><!-- Tutaj ustaw ikonę warunków pogodowych -->
     </LinearLayout>
 
 </ScrollView>
